@@ -28,8 +28,8 @@ class StoreTaskRequest extends FormRequest
         return [
             "title" => ["required","string" ,"max:255"],
             "description" => ["nullable","string"],
-            "status" => ["nullable", Rule::in(TaskStatus::cases())],
-            "priority" => ["nullable", Rule::in(TaskPriority::cases())],
+            "status" => ["nullable", Rule::enum(TaskStatus::class)],
+            "priority" => ["nullable", Rule::enum(TaskPriority::class)],
             "due_date" => ["nullable","date","after_or_equal:today"]
         ];
     }

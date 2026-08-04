@@ -27,8 +27,8 @@ class TaskController extends Controller
         ->when($request->filled("status"),function ($query) use ($request){
             $query->where("status","like","%{$request->input('status')}%");
         })
-        ->when($request->filled("prioriy"),function ($query) use ($request){
-            $query->where("prioriy","like","%{$request->input('prioriy')}%");
+        ->when($request->filled("priority"),function ($query) use ($request){
+            $query->where("priority","like","%{$request->input('priority')}%");
         })->latest()->paginate(10);
 
         return TaskResource::collection($tasks);
@@ -64,7 +64,7 @@ class TaskController extends Controller
         $task->update($request->validated());
         return response()->json([
             "message" => "Task updated successfully",
-            "date" => $task->toResource()
+            "data" => $task->toResource()
         ]);
     }
 

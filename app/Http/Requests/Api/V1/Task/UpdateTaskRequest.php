@@ -28,8 +28,8 @@ class UpdateTaskRequest extends FormRequest
         return [
             "title" => ["sometimes","required","string" ,"max:255"],
             "description" => ["sometimes","string"],
-            "status" => ["sometimes", Rule::in(TaskStatus::cases())],
-            "priority" => ["sometimes", Rule::in(TaskPriority::cases())],
+            "status" => ["sometimes", Rule::enum(TaskStatus::class)],
+            "priority" => ["sometimes", Rule::enum(TaskPriority::class)],
             "due_date" => ["sometimes","date","after_or_equal:today"]
         ];
     }
