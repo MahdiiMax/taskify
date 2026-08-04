@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Api\V1\Task;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,8 +28,8 @@ class UpdateTaskRequest extends FormRequest
         return [
             "title" => ["sometimes","required","string" ,"max:255"],
             "description" => ["sometimes","string"],
-            "status" => ["sometimes", Rule::in(["pending","in_progress","done"])],
-            "priority" => ["sometimes", Rule::in(["low","medium","high"])],
+            "status" => ["sometimes", Rule::in(TaskStatus::cases())],
+            "priority" => ["sometimes", Rule::in(TaskPriority::cases())],
             "due_date" => ["sometimes","date","after_or_equal:today"]
         ];
     }

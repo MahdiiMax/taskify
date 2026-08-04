@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Models\Task;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,8 +22,8 @@ class TaskFactory extends Factory
         return [
             "title" => fake()->sentence(4),
             "description" => fake()->paragraph(),
-            "status" => fake()->randomElement(["pending","in_progress","done"]),
-            "priority" => fake()->randomElement(["low","medium","high"]),
+            "status" => fake()->randomElement(TaskStatus::cases()),
+            "priority" => fake()->randomElement(TaskPriority::cases()),
             "due_date" => fake()->dateTimeBetween("now","+1 month")
         ];
     }
