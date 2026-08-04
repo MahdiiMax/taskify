@@ -7,7 +7,7 @@ use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::prefix("v1")->group(function (){
+Route::prefix("v1")->name("api.v1.")->group(function (){
 
     Route::middleware(GuestMiddleware::class)->group(function (){
     Route::post('/register',[AuthController::class, "register"]);
