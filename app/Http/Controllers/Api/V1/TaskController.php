@@ -20,18 +20,17 @@ class TaskController extends Controller
      */
     public function index(Request $request)
     {
-        $tasks = $request->user()->tasks();
-        if($request->filled("search")){
-            $tasks->whereAny(["title","description"],"like","{$request->input('search')}");
-        }
-        if($request->filled("status")){
-            $tasks->where("status",$request->input("status"));
-        }
-        if($request->filled("prioriy")){
-            $tasks->where("prioriy",$request->input("prioriy"));
-        }
+        $tasks = $request->user()->tasks()
+        ->when($request->filled("search"),function ($query) use ($request){
+            $query->whereAny(["title","description"],"like","%{$request->input('search')}%");
+        })
+        ->when($request->filled("status"),function ($query) use ($request){
+            $query->where("status","like","%{$request->input('status')}%");
+        })
+        ->when($request->filled("prioriy"),function ($query) use ($request){
+            $query->where("prioriy","like","%{$request->input('prioriy')}%");
+        })->latest()->paginate(10);
 
-        $tasks = $tasks->latest()->paginate(10);
         return TaskResource::collection($tasks);
     }
 
