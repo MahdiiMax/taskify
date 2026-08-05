@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    /**
+     * User register.
+     */
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = User::create([
@@ -28,6 +31,9 @@ class AuthController extends Controller
         ],201);
     }
 
+    /**
+     * User login.
+     */
     public function login(LoginRequest $request): JsonResponse
     {
         $user = User::where("email",$request->email)->first();
@@ -46,9 +52,12 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     *  User logout.
+     */
     public function logout(Request $request): JsonResponse
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user("sanctum")->currentAccessToken()->delete();
         return response()->json([
             "message" => "logged out successfully"
         ]);
