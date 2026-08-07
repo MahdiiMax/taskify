@@ -33,7 +33,7 @@
 - [Requirements](#-requirements)
 - [Installation](#-installation)
 - [Running Tests](#-running-tests)
-- [Project Structure](#-project-structure)
+- [Project Structure](#️-project-structure)
 - [API Reference](#-api-reference)
 - [Authentication](#-authentication)
 - [Tasks](#-tasks)
@@ -41,7 +41,7 @@
 - [Rate Limits](#-rate-limits)
 - [Documentation](#-documentation)
 - [Deployment](#-deployment)
-- [License](#-license)
+- [License](#️-license)
 - [Developed By](#-developed-by)
 
 
@@ -113,14 +113,21 @@ php artisan test --env=pgsql
 ## 🗂️ Project Structure
 
     app/
-    ├── Enums/                         # TaskStatus, TaskPriority
+    ├── Enums/                          # TaskPriority, TaskStatus
     ├── Http/
-    │   ├── Api/V1/Controllers/       # AuthController, TaskController
-    │   ├── Api/V1/Middleware/        # GuestMiddleware
-    │   └── Api/V1/Requests/          # Form Requests & validation
-    ├── Resources/Api/V1/                # API Resources (TaskResource, UserResource)
-    ├── routes/api.php                # v1 API routes
-    └── tests/Feature/Api/V1/         # Pest feature tests
+    │   ├── Controllers/Api/V1/        # AuthController, TaskController
+    │   ├── Middleware/Api/V1/         # GuestMiddleware
+    │   ├── Requests/Api/V1/           # Auth/ & Task/ Form Requests
+    │   └── Resources/Api/V1/          # TaskResource, UserResource
+    ├── Models/                        # Task, User
+    ├── Policies/                      # TaskPolicy
+    └── Providers/                     # AppServiceProvider
+
+    routes/
+    └── api.php                        # v1 API routes
+
+    tests/
+    ├── Feature/Api/V1/                # AuthTest, TaskTest
 
 
 ## 📜 API Reference
