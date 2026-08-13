@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -27,6 +28,19 @@ class DatabaseSeeder extends Seeder
         //     "user_id" => User::inRandomOrder()->first()->id
         // ]);
 
-        User::factory(10)->hasTasks(5)->create();
+        $users = User::factory(5)->create();
+        $users->each(function ($user) {
+            Project::factory(2)->create([
+                "user_id" => $user->id
+            ])->each(function ($project) use ($user) {
+                Task::factory(2)->create([
+                    "user_id" => $user->id,
+                    "project_id" => $project->id
+                ]);
+            });
+            Task::factory(2)->create([
+                "user_id" => $user->id
+            ]);
+        });
     }
 }

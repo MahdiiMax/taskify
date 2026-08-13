@@ -2,26 +2,21 @@
 
 namespace App\Models;
 
-use App\Http\Resources\Api\V1\TaskResource;
-use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[UseResource(TaskResource::class)]
-class Task extends Model
+class Project extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'title',
+        'name',
         'description',
-        'status',
-        'priority',
-        'user_id',
-        'project_id',
-        'due_date',
+        'color',
+        'user_id'
     ];
 
     public function user(): BelongsTo
@@ -29,8 +24,8 @@ class Task extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function project(): BelongsTo
+    public function tasks(): HasMany
     {
-        return $this->belongsTo(Project::class);
+        return $this->hasMany(Task::class);
     }
 }
