@@ -27,7 +27,7 @@ class UpdateProjectRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'nullable', 'string'],
-            'color' => ['sometimes', Rule::in(ProjectColor::cases())]
+            'color' => ['sometimes', Rule::enum(ProjectColor::class)],
         ];
     }
 }

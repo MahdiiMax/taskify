@@ -32,7 +32,7 @@ class TaskController extends Controller
     {
         $tasks = $request->user()->tasks()
             ->when($request->filled('search'), function ($query) use ($request) {
-                $search = '%' . strtolower($request->input('search')) . '%';
+                $search = '%'.strtolower($request->input('search')).'%';
                 $query->where(function ($query) use ($search) {
                     $query->whereRaw('LOWER(title) LIKE ?', [$search])
                         ->orWhereRaw('LOWER(description) LIKE ?', [$search]);
@@ -101,7 +101,7 @@ class TaskController extends Controller
     /**
      * Remove the specified task from storage.
      */
-    #[Response(status: 200, description: 'Task deleted successfully', examples: [[
+    #[Response(status: 204, description: 'Task deleted successfully', examples: [[
         'message' => 'Task deleted successfully',
     ]])]
     public function destroy(Task $task): JsonResponse
@@ -111,7 +111,7 @@ class TaskController extends Controller
 
         return response()->json([
             'message' => 'Task deleted successfully',
-        ]);
+        ], 204);
     }
 
     /**

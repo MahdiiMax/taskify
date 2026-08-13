@@ -26,12 +26,12 @@ class StoreTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "title" => ["required","string" ,"max:255"],
-            "description" => ["nullable","string"],
-            "status" => ["nullable", Rule::enum(TaskStatus::class)],
-            "priority" => ["nullable", Rule::enum(TaskPriority::class)],
-            "due_date" => ["nullable","date","after_or_equal:today"],
-            'project_id' => ['nullable', 'exists:projects,id']
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['nullable', Rule::enum(TaskStatus::class)],
+            'priority' => ['nullable', Rule::enum(TaskPriority::class)],
+            'due_date' => ['nullable', 'date', 'after_or_equal:today'],
+            'project_id' => ['nullable', 'exists:projects,id'],
         ];
     }
 }

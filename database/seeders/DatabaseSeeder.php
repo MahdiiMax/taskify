@@ -31,15 +31,15 @@ class DatabaseSeeder extends Seeder
         $users = User::factory(5)->create();
         $users->each(function ($user) {
             Project::factory(2)->create([
-                "user_id" => $user->id
+                'user_id' => $user->id,
             ])->each(function ($project) use ($user) {
                 Task::factory(2)->create([
-                    "user_id" => $user->id,
-                    "project_id" => $project->id
+                    'user_id' => $user->id,
+                    'project_id' => $project->id,
                 ]);
             });
             Task::factory(2)->create([
-                "user_id" => $user->id
+                'user_id' => $user->id,
             ]);
         });
     }

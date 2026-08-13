@@ -22,7 +22,7 @@ class ProjectFactory extends Factory
         return [
             'name' => fake()->name,
             'description' => fake()->sentence,
-            'color' => Arr::random(ProjectColor::cases())
+            'color' => Arr::random(ProjectColor::cases()),
         ];
     }
 }

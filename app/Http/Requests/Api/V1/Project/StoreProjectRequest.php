@@ -27,7 +27,7 @@ class StoreProjectRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'color' => ['nullable', Rule::in(ProjectColor::cases())]
+            'color' => ['nullable', Rule::enum(ProjectColor::class)],
         ];
     }
 }
