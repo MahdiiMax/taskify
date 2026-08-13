@@ -32,7 +32,7 @@ class TaskController extends Controller
     {
         $tasks = $request->user()->tasks()
             ->when($request->filled('search'), function ($query) use ($request) {
-                $search = '%'.strtolower($request->input('search')).'%';
+                $search = '%' . strtolower($request->input('search')) . '%';
                 $query->where(function ($query) use ($search) {
                     $query->whereRaw('LOWER(title) LIKE ?', [$search])
                         ->orWhereRaw('LOWER(description) LIKE ?', [$search]);
@@ -43,6 +43,8 @@ class TaskController extends Controller
             })
             ->when($request->filled('priority'), function ($query) use ($request) {
                 $query->where('priority', $request->input('priority'));
+            })->when($request->filled('project_id'), function ($query) use ($request) {
+                $query->where('project_id', $request->input('project_id'));
             })->latest()->paginate(10);
 
         return TaskResource::collection($tasks);

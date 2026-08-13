@@ -30,7 +30,8 @@ class StoreTaskRequest extends FormRequest
             "description" => ["nullable","string"],
             "status" => ["nullable", Rule::enum(TaskStatus::class)],
             "priority" => ["nullable", Rule::enum(TaskPriority::class)],
-            "due_date" => ["nullable","date","after_or_equal:today"]
+            "due_date" => ["nullable","date","after_or_equal:today"],
+            'project_id' => ['nullable', 'exists:projects,id']
         ];
     }
 }
