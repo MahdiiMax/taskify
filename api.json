@@ -622,6 +622,9 @@
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
                     },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
                     }
@@ -692,6 +695,9 @@
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
                     },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
+                    },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
                     },
@@ -744,6 +750,9 @@
                     },
                     "404": {
                         "$ref": "#/components/responses/ModelNotFoundException"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/AuthorizationException"
                     },
                     "401": {
                         "$ref": "#/components/responses/AuthenticationException"
@@ -942,7 +951,7 @@
                         "in": "query",
                         "schema": {
                             "type": [
-                                "integer",
+                                "string",
                                 "null"
                             ]
                         }
@@ -1591,7 +1600,7 @@
                     },
                     "project_id": {
                         "type": [
-                            "integer",
+                            "string",
                             "null"
                         ]
                     }
@@ -1643,6 +1652,12 @@
                             "null"
                         ]
                     },
+                    "project_id": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    },
                     "user": {
                         "$ref": "#/components/schemas/UserResource"
                     },
@@ -1661,6 +1676,7 @@
                     "status",
                     "priority",
                     "due_date",
+                    "project_id",
                     "created_at"
                 ],
                 "title": "TaskResource"
@@ -1718,6 +1734,12 @@
                     "due_date": {
                         "type": "string",
                         "format": "date-time"
+                    },
+                    "project_id": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
                     }
                 },
                 "title": "UpdateTaskRequest"

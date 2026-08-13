@@ -81,6 +81,19 @@ test('user can soft delete and restore a project', function () {
     $this->assertDatabaseHas('projects', ['id' => $project->id, 'deleted_at' => null]);
 });
 
+test("user cannot restore another user's project", function () {
+    $user1 = User::factory()->create();
+    $user2 = User::factory()->create();
+    $project = Project::factory()->create(['user_id' => $user1->id]);
+    $project->delete();
+
+    $this->actingAs($user2)
+        ->postJson(route('api.v1.projects.restore', $project))
+        ->assertStatus(403);
+
+    $this->assertSoftDeleted('projects', ['id' => $project->id]);
+});
+
 test('user can view their trashed projects', function () {
     $user = User::factory()->create();
     $trashedProjects = Project::factory(2)->create(['user_id' => $user->id]);

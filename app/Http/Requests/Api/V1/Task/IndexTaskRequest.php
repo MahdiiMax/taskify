@@ -29,7 +29,7 @@ class IndexTaskRequest extends FormRequest
             'search' => ['nullable', 'string', 'max:255'],
             'status' => ['nullable', Rule::enum(TaskStatus::class)],
             'priority' => ['nullable', Rule::enum(TaskPriority::class)],
-            'project_id' => ['nullable', 'exists:projects,id'],
+            'project_id' => ['nullable', Rule::exists('projects', 'id')->where('user_id', $this->user()->id)],
         ];
     }
 }

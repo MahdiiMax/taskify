@@ -31,6 +31,7 @@ class UpdateTaskRequest extends FormRequest
             'status' => ['sometimes', Rule::enum(TaskStatus::class)],
             'priority' => ['sometimes', Rule::enum(TaskPriority::class)],
             'due_date' => ['sometimes', 'date', 'after_or_equal:today'],
+            'project_id' => ['sometimes', 'nullable', Rule::exists('projects', 'id')->where('user_id', $this->user()->id)],
         ];
     }
 }
