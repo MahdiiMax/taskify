@@ -99,7 +99,7 @@ test('user can soft delete and restore a task', function () {
     $task = Task::factory()->create(['user_id' => $user->id]);
 
     $response = $this->actingAs($user)->deleteJson(route('api.v1.tasks.destroy', ['task' => $task->id]));
-    $response->assertStatus(200);
+    $response->assertStatus(204);
     $this->assertSoftDeleted('tasks', ['id' => $task->id]);
 
     $restoreResponse = $this->actingAs($user)->postJson(route('api.v1.tasks.restore', ['task' => $task->id]));
@@ -206,7 +206,7 @@ test('token-authenticated user can delete a task', function () {
 
     $this->withHeader('Authorization', "Bearer {$token}")
         ->deleteJson(route('api.v1.tasks.destroy', $task))
-        ->assertStatus(200);
+        ->assertStatus(204);
 
     $this->assertSoftDeleted('tasks', ['id' => $task->id]);
 });

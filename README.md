@@ -15,14 +15,15 @@
 
 ## ✨ Overview
 
-**Taskify** is a production-ready task management API with token-based authentication, per-user task isolation, filtering, and rate limiting — fully documented with interactive OpenAPI docs.
+**Taskify** is a production-ready task management API with token-based authentication, per-user task & project isolation, filtering, and rate limiting — fully documented with interactive OpenAPI docs.
 
 ### 🎁 Features
 
 - 🔐 **Sanctum token auth** — 24-hour token expiry, revocable via logout
 - 📝 **Full CRUD** with soft delete & restore
 - 🔍 **Smart filtering** — exact `status`/`priority` filters + case-insensitive search
-- 👤 **Per-user isolation** — tasks are private to their owner
+- 👤 **Per-user isolation** — tasks and projects are private to their owner
+- 📁 **Projects** — organize tasks into color-coded projects with full CRUD, soft delete & restore
 - 🚦 **Rate limiting** — auth (5/min) & API (60/min)
 - 📚 **Interactive docs** via Scramble
 - 🗃️ **PostgreSQL** + Docker setup included
@@ -37,6 +38,7 @@
 - [API Reference](#-api-reference)
 - [Authentication](#-authentication)
 - [Tasks](#-tasks)
+- [Projects](#-projects)
 - [Status Codes](#-status-codes)
 - [Rate Limits](#-rate-limits)
 - [Documentation](#-documentation)
@@ -113,21 +115,21 @@ php artisan test --env=pgsql
 ## 🗂️ Project Structure
 
     app/
-    ├── Enums/                          # TaskPriority, TaskStatus
+    ├── Enums/                          # TaskPriority, TaskStatus, ProjectColor
     ├── Http/
-    │   ├── Controllers/Api/V1/        # AuthController, TaskController
+    │   ├── Controllers/Api/V1/        # AuthController, TaskController, ProjectController
     │   ├── Middleware/Api/V1/         # GuestMiddleware
-    │   ├── Requests/Api/V1/           # Auth/ & Task/ Form Requests
-    │   └── Resources/Api/V1/          # TaskResource, UserResource
-    ├── Models/                        # Task, User
-    ├── Policies/                      # TaskPolicy
+    │   ├── Requests/Api/V1/           # Auth/, Task/ & Project/ Form Requests
+    │   └── Resources/Api/V1/          # TaskResource, UserResource, ProjectResource
+    ├── Models/                        # Task, User, Project
+    ├── Policies/                      # TaskPolicy, ProjectPolicy
     └── Providers/                     # AppServiceProvider
 
     routes/
     └── api.php                        # v1 API routes
 
     tests/
-    ├── Feature/Api/V1/                # AuthTest, TaskTest
+    ├── Feature/Api/V1/                # AuthTest, TaskTest, ProjectTest
 
 
 ## 📜 API Reference
@@ -138,7 +140,7 @@ php artisan test --env=pgsql
 
 ### 🔑 Authentication
 
-All task endpoints require a Bearer token:
+All task and project endpoints require a Bearer token:
 
 ```
 Authorization: Bearer {token}
@@ -195,6 +197,7 @@ Tokens are issued by `login`, live **24 hours**, and are revoked by `logout`.
 | `status` | nullable — `pending` · `in_progress` · `done` |
 | `priority` | nullable — `low` · `medium` · `high` |
 | `due_date` | nullable · date · today or later |
+| `project_id` | nullable · exists in your projects |
 
 #### Filters — `GET /tasks`
 
@@ -203,8 +206,29 @@ Tokens are issued by `login`, live **24 hours**, and are revoked by `logout`.
 | `status` | `?status=pending` | exact match |
 | `priority` | `?priority=high` | exact match |
 | `search` | `?search=buy milk` | case-insensitive partial match on title/description |
+| `project_id` | `?project_id=3` | exact match (your projects only) |
 
 Invalid `status`/`priority` values → `422`.
+
+### 📁 Projects
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/projects` | List own projects *(paginated, 10/page)* |
+| POST | `/projects` | Create a project |
+| GET | `/projects/{project}` | Show a project |
+| PUT/PATCH | `/projects/{project}` | Update a project |
+| DELETE | `/projects/{project}` | Soft delete a project |
+| GET | `/projects/trashed` | List soft-deleted projects |
+| POST | `/projects/{project}/restore` | Restore a soft-deleted project |
+
+#### Project Fields
+
+| Field | Rules |
+| --- | --- |
+| `name` | required · string · max 255 |
+| `description` | nullable · string |
+| `color` | nullable — `white` · `black` · `blue` · `pink` · `red` · `green` · `yellow` · `orange` |
 
 ### 🌐 Status Codes
 

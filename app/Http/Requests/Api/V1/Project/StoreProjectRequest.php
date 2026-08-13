@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Api\V1\Task;
+namespace App\Http\Requests\Api\V1\Project;
 
-use App\Enums\TaskPriority;
-use App\Enums\TaskStatus;
+use App\Enums\ProjectColor;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreTaskRequest extends FormRequest
+class StoreProjectRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,12 +25,9 @@ class StoreTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['nullable', Rule::enum(TaskStatus::class)],
-            'priority' => ['nullable', Rule::enum(TaskPriority::class)],
-            'due_date' => ['nullable', 'date', 'after_or_equal:today'],
-            'project_id' => ['nullable', Rule::exists('projects', 'id')->where('user_id', $this->user()->id)],
+            'color' => ['nullable', Rule::enum(ProjectColor::class)],
         ];
     }
 }

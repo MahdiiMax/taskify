@@ -15,11 +15,12 @@ class GuestMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if($request->bearerToken() && $request->user("sanctum")){
+        if ($request->bearerToken() && $request->user('sanctum')) {
             return response()->json([
-                "message" => "You are already authenticated. Please log out first."
-            ],400);
+                'message' => 'You are already authenticated. Please log out first.',
+            ], 400);
         }
+
         return $next($request);
     }
 }

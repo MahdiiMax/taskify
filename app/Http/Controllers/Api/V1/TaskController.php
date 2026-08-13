@@ -43,6 +43,8 @@ class TaskController extends Controller
             })
             ->when($request->filled('priority'), function ($query) use ($request) {
                 $query->where('priority', $request->input('priority'));
+            })->when($request->filled('project_id'), function ($query) use ($request) {
+                $query->where('project_id', $request->input('project_id'));
             })->latest()->paginate(10);
 
         return TaskResource::collection($tasks);
@@ -99,7 +101,7 @@ class TaskController extends Controller
     /**
      * Remove the specified task from storage.
      */
-    #[Response(status: 200, description: 'Task deleted successfully', examples: [[
+    #[Response(status: 204, description: 'Task deleted successfully', examples: [[
         'message' => 'Task deleted successfully',
     ]])]
     public function destroy(Task $task): JsonResponse
@@ -109,7 +111,7 @@ class TaskController extends Controller
 
         return response()->json([
             'message' => 'Task deleted successfully',
-        ]);
+        ], 204);
     }
 
     /**

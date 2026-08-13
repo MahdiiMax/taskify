@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Task;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TaskPolicy
 {
@@ -37,6 +36,6 @@ class TaskPolicy
      */
     public function restore(User $user, Task $task): bool
     {
-        return $user->id == $task->user_id && $task->trashed(); 
+        return $user->id == $task->user_id && $task->trashed();
     }
 }
