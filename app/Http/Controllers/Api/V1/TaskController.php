@@ -12,8 +12,8 @@ use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\Response;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response as HttpResponse;
 
 #[Group('Tasks')]
 class TaskController extends Controller
@@ -31,21 +31,9 @@ class TaskController extends Controller
     public function index(IndexTaskRequest $request): AnonymousResourceCollection
     {
         $tasks = $request->user()->tasks()
-            ->when($request->filled('search'), function ($query) use ($request) {
-                $search = '%'.strtolower($request->input('search')).'%';
-                $query->where(function ($query) use ($search) {
-                    $query->whereRaw('LOWER(title) LIKE ?', [$search])
-                        ->orWhereRaw('LOWER(description) LIKE ?', [$search]);
-                });
-            })
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->input('status'));
-            })
-            ->when($request->filled('priority'), function ($query) use ($request) {
-                $query->where('priority', $request->input('priority'));
-            })->when($request->filled('project_id'), function ($query) use ($request) {
-                $query->where('project_id', $request->input('project_id'));
-            })->latest()->paginate(10);
+            ->filter($request->validated())
+            ->latest()
+            ->paginate((int) $request->validated('per_page', 10));
 
         return TaskResource::collection($tasks);
     }
@@ -76,6 +64,7 @@ class TaskController extends Controller
     public function show(Task $task): TaskResource
     {
         $this->authorize('view', $task);
+        $task->loadMissing('user');
 
         return new TaskResource($task);
     }
@@ -91,6 +80,7 @@ class TaskController extends Controller
     {
         $this->authorize('update', $task);
         $task->update($request->validated());
+        $task->loadMissing('user');
 
         return response()->json([
             'message' => 'Task updated successfully',
@@ -101,17 +91,13 @@ class TaskController extends Controller
     /**
      * Remove the specified task from storage.
      */
-    #[Response(status: 204, description: 'Task deleted successfully', examples: [[
-        'message' => 'Task deleted successfully',
-    ]])]
-    public function destroy(Task $task): JsonResponse
+    #[Response(status: 204, description: 'Task deleted successfully')]
+    public function destroy(Task $task): HttpResponse
     {
         $this->authorize('delete', $task);
         $task->delete();
 
-        return response()->json([
-            'message' => 'Task deleted successfully',
-        ], 204);
+        return response()->noContent();
     }
 
     /**
@@ -122,9 +108,12 @@ class TaskController extends Controller
         'links' => ['first' => null, 'last' => null, 'prev' => null, 'next' => null],
         'meta' => ['current_page' => 1, 'from' => 1, 'last_page' => 1, 'path' => 'http://localhost:8000/api/v1/tasks/trashed', 'per_page' => 10, 'to' => 1, 'total' => 1],
     ]])]
-    public function trashed(Request $request): AnonymousResourceCollection
+    public function trashed(IndexTaskRequest $request): AnonymousResourceCollection
     {
-        $trashedTasks = $request->user()->tasks()->onlyTrashed()->latest()->paginate(10);
+        $trashedTasks = $request->user()->tasks()
+            ->onlyTrashed()
+            ->latest()
+            ->paginate((int) $request->validated('per_page', 10));
 
         return TaskResource::collection($trashedTasks);
     }

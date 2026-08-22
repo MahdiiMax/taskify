@@ -13,6 +13,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response as HttpResponse;
 
 #[Group('Projects')]
 class ProjectController extends Controller
@@ -87,16 +88,12 @@ class ProjectController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    #[Response(status: 204, description: 'Project deleted successfully', examples: [[
-        'message' => 'Project deleted successfully',
-    ]])]
-    public function destroy(Project $project): JsonResponse
+    #[Response(status: 204, description: 'Project deleted successfully')]
+    public function destroy(Project $project): HttpResponse
     {
         $project->delete();
 
-        return response()->json([
-            'message' => 'Project deleted successfully',
-        ], 204);
+        return response()->noContent();
     }
 
     /**
