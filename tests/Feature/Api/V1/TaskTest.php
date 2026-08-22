@@ -99,7 +99,7 @@ test('user can soft delete and restore a task', function () {
     $task = Task::factory()->create(['user_id' => $user->id]);
 
     $response = $this->actingAs($user)->deleteJson(route('api.v1.tasks.destroy', ['task' => $task->id]));
-    $response->assertStatus(204);
+    $response->assertNoContent();
     $this->assertSoftDeleted('tasks', ['id' => $task->id]);
 
     $restoreResponse = $this->actingAs($user)->postJson(route('api.v1.tasks.restore', ['task' => $task->id]));
@@ -206,7 +206,7 @@ test('token-authenticated user can delete a task', function () {
 
     $this->withHeader('Authorization', "Bearer {$token}")
         ->deleteJson(route('api.v1.tasks.destroy', $task))
-        ->assertStatus(204);
+        ->assertNoContent();
 
     $this->assertSoftDeleted('tasks', ['id' => $task->id]);
 });
@@ -230,4 +230,31 @@ test('request with invalid token is rejected', function () {
     $this->withHeader('Authorization', 'Bearer invalid-token')
         ->getJson(route('api.v1.tasks.index'))
         ->assertStatus(401);
+});
+
+test('tasks list supports custom per_page', function () {
+    $user = User::factory()->create();
+    Task::factory(15)->create(['user_id' => $user->id]);
+
+    $this->actingAs($user)
+        ->getJson(route('api.v1.tasks.index', ['per_page' => 5]))
+        ->assertOk()
+        ->assertJsonCount(5, 'data')
+        ->assertJsonPath('meta.per_page', 5);
+});
+
+test('per_page above 100 is rejected', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->getJson(route('api.v1.tasks.index', ['per_page' => 101]))
+        ->assertStatus(422);
+});
+
+test('task model casts status and priority to enums', function () {
+    $user = User::factory()->create();
+    $task = Task::factory()->create(['user_id' => $user->id]);
+
+    expect($task->status)->toBeInstanceOf(TaskStatus::class)
+        ->and($task->priority)->toBeInstanceOf(TaskPriority::class);
 });

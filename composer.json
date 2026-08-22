@@ -1,11 +1,13 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/laravel",
+    "name": "mahdiimax/taskify",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "A clean, RESTful task management API built with Laravel",
     "keywords": [
         "laravel",
-        "framework"
+        "api",
+        "task-management",
+        "sanctum"
     ],
     "license": "MIT",
     "require": {

@@ -207,6 +207,7 @@ Tokens are issued by `login`, live **24 hours**, and are revoked by `logout`.
 | `priority` | `?priority=high` | exact match |
 | `search` | `?search=buy milk` | case-insensitive partial match on title/description |
 | `project_id` | `?project_id=3` | exact match (your projects only) |
+| `per_page` | `?per_page=25` | page size 1–100, default 10 |
 
 Invalid `status`/`priority` values → `422`.
 
@@ -236,6 +237,7 @@ Invalid `status`/`priority` values → `422`.
 | --- | --- |
 | `200` | Success |
 | `201` | Created |
+| `204` | Deleted (empty response body) |
 | `400` | Already authenticated (on login/register) |
 | `401` | Unauthenticated / expired or revoked token |
 | `403` | Forbidden (another user's resource) |
