@@ -73,7 +73,7 @@ test('user can soft delete and restore a project', function () {
     $project = Project::factory()->create(['user_id' => $user->id]);
     $this->actingAs($user)
         ->deleteJson(route('api.v1.projects.destroy', $project))
-        ->assertStatus(204);
+        ->assertNoContent();
     $this->assertSoftDeleted('projects', ['id' => $project->id]);
     $this->actingAs($user)
         ->postJson(route('api.v1.projects.restore', $project))
