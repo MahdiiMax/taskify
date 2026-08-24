@@ -186,6 +186,7 @@ Tokens are issued by `login`, live **24 hours**, and are revoked by `logout`.
 | PUT/PATCH | `/tasks/{task}` | Update a task |
 | DELETE | `/tasks/{task}` | Soft delete a task |
 | GET | `/tasks/trashed` | List soft-deleted tasks |
+| GET | `/tasks/stats` | Aggregate statistics for your tasks |
 | POST | `/tasks/{task}/restore` | Restore a soft-deleted task |
 
 #### Task Fields
@@ -208,6 +209,7 @@ Tokens are issued by `login`, live **24 hours**, and are revoked by `logout`.
 | `search` | `?search=buy milk` | case-insensitive partial match on title/description |
 | `project_id` | `?project_id=3` | exact match (your projects only) |
 | `per_page` | `?per_page=25` | page size 1–100, default 10 |
+| `sort` | `?sort=-due_date,title` | whitelist: title, status, priority, due_date, created_at · `-` prefix = descending |
 
 Invalid `status`/`priority` values → `422`.
 

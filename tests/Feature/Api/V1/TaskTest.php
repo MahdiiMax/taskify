@@ -258,3 +258,67 @@ test('task model casts status and priority to enums', function () {
     expect($task->status)->toBeInstanceOf(TaskStatus::class)
         ->and($task->priority)->toBeInstanceOf(TaskPriority::class);
 });
+
+test('user can retrieve their task statistics', function () {
+    $user = User::factory()->create();
+    $other = User::factory()->create();
+
+    Task::factory()->create(['user_id' => $user->id, 'status' => TaskStatus::PENDING, 'priority' => TaskPriority::HIGH]);
+    Task::factory()->create(['user_id' => $user->id, 'status' => TaskStatus::DONE, 'priority' => TaskPriority::LOW]);
+    Task::factory()->create(['user_id' => $other->id]);
+
+    $response = $this->actingAs($user)->getJson(route('api.v1.tasks.stats'))->assertOk();
+
+    expect($response->json('data.total'))->toBe(2)
+        ->and($response->json('data.by_status.pending'))->toBe(1)
+        ->and($response->json('data.by_status.in_progress'))->toBe(0)
+        ->and($response->json('data.by_status.done'))->toBe(1)
+        ->and($response->json('data.by_priority.high'))->toBe(1)
+        ->and($response->json('data.by_priority.low'))->toBe(1)
+        ->and($response->json('data.by_priority.medium'))->toBe(0);
+});
+
+test('statistics include overdue, due today, and completed this week', function () {
+    $user = User::factory()->create();
+
+    Task::factory()->create(['user_id' => $user->id, 'status' => TaskStatus::PENDING, 'due_date' => now()->subDay()]);
+    Task::factory()->create(['user_id' => $user->id, 'status' => TaskStatus::PENDING, 'due_date' => now()->addHours(2)]);
+    Task::factory()->create(['user_id' => $user->id, 'status' => TaskStatus::PENDING, 'due_date' => now()->addDays(5)]);
+    Task::factory()->create(['user_id' => $user->id, 'status' => TaskStatus::DONE, 'due_date' => now()->subDay()]);
+    Task::factory()->create(['user_id' => $user->id, 'status' => TaskStatus::DONE]);
+
+    $response = $this->actingAs($user)->getJson(route('api.v1.tasks.stats'))->assertOk();
+
+    expect($response->json('data.overdue'))->toBe(1)
+        ->and($response->json('data.due_today'))->toBe(1)
+        ->and($response->json('data.completed_this_week'))->toBe(2);
+});
+
+test('unauthenticated user cannot access statistics', function () {
+    $this->getJson(route('api.v1.tasks.stats'))->assertStatus(401);
+});
+
+test('user can sort tasks ascending and descending', function () {
+    $user = User::factory()->create();
+    Task::factory()->create(['user_id' => $user->id, 'title' => 'Alpha']);
+    Task::factory()->create(['user_id' => $user->id, 'title' => 'Zulu']);
+    Task::factory()->create(['user_id' => $user->id, 'title' => 'Mike']);
+
+    $this->actingAs($user)
+        ->getJson(route('api.v1.tasks.index', ['sort' => '-title']))
+        ->assertOk()
+        ->assertJsonPath('data.*.title', ['Zulu', 'Mike', 'Alpha']);
+
+    $this->actingAs($user)
+        ->getJson(route('api.v1.tasks.index', ['sort' => 'title']))
+        ->assertOk()
+        ->assertJsonPath('data.*.title', ['Alpha', 'Mike', 'Zulu']);
+});
+
+test('unsupported sort field is rejected', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->getJson(route('api.v1.tasks.index', ['sort' => 'description']))
+        ->assertStatus(422);
+});

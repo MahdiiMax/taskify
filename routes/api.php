@@ -16,6 +16,7 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('tasks')->controller(TaskController::class)->name('tasks.')->group(function () {
             Route::get('trashed', 'trashed')->name('trashed');
+            Route::get('stats', 'stats')->name('stats');
             Route::post('{task}/restore', 'restore')->withTrashed()->name('restore');
         });
         Route::apiResource('tasks', TaskController::class);

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Task\IndexTaskRequest;
 use App\Http\Requests\Api\V1\Task\StoreTaskRequest;
@@ -12,6 +14,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Dedoc\Scramble\Attributes\Response;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response as HttpResponse;
 
@@ -32,7 +35,7 @@ class TaskController extends Controller
     {
         $tasks = $request->user()->tasks()
             ->filter($request->validated())
-            ->latest()
+            ->sort($request->input('sort'))
             ->paginate((int) $request->validated('per_page', 10));
 
         return TaskResource::collection($tasks);
@@ -130,5 +133,55 @@ class TaskController extends Controller
         $task->restore();
 
         return new TaskResource($task);
+    }
+
+    /**
+     * Aggregate statistics for the authenticated user's tasks.
+     */
+    #[Response(status: 200, description: 'Task statistics', examples: [[
+        'data' => [
+            'total' => 42,
+            'by_status' => ['pending' => 10, 'in_progress' => 12, 'done' => 20],
+            'by_priority' => ['low' => 8, 'medium' => 14, 'high' => 20],
+            'overdue' => 3,
+            'due_today' => 2,
+            'completed_this_week' => 5,
+        ],
+    ]])]
+    public function stats(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $byStatus = $user->tasks()
+            ->select('status')
+            ->selectRaw('COUNT(*) AS aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+        $byPriority = $user->tasks()
+            ->select('priority')
+            ->selectRaw('COUNT(*) AS aggregate')
+            ->groupBy('priority')
+            ->pluck('aggregate', 'priority');
+
+        return response()->json([
+            'data' => [
+                'total' => $user->tasks()->count(),
+                'by_status' => collect(TaskStatus::cases())
+                    ->mapWithKeys(fn (TaskStatus $status) => [$status->value => (int) ($byStatus[$status->value] ?? 0)]),
+                'by_priority' => collect(TaskPriority::cases())
+                    ->mapWithKeys(fn (TaskPriority $priority) => [$priority->value => (int) ($byPriority[$priority->value] ?? 0)]),
+                'overdue' => $user->tasks()
+                    ->whereNotNull('due_date')
+                    ->where('due_date', '<', now())
+                    ->where('status', '!=', TaskStatus::DONE->value)
+                    ->count(),
+                'due_today' => $user->tasks()
+                    ->whereBetween('due_date', [now()->startOfDay(), now()->endOfDay()])
+                    ->count(),
+                'completed_this_week' => $user->tasks()
+                    ->where('status', TaskStatus::DONE->value)
+                    ->where('updated_at', '>=', now()->startOfWeek())
+                    ->count(),
+            ],
+        ]);
     }
 }
