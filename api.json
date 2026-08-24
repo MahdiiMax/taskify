@@ -814,6 +814,16 @@
                             "minimum": 1,
                             "maximum": 100
                         }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
+                        }
                     }
                 ],
                 "responses": {
@@ -879,6 +889,96 @@
                     },
                     "422": {
                         "$ref": "#/components/responses/ValidationException"
+                    }
+                }
+            }
+        },
+        "/v1/tasks/stats": {
+            "get": {
+                "operationId": "v1.tasks.stats",
+                "summary": "Aggregate statistics for the authenticated user's tasks",
+                "tags": [
+                    "Tasks"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task statistics",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "examples": [
+                                        {
+                                            "data": {
+                                                "total": 42,
+                                                "by_status": {
+                                                    "pending": 10,
+                                                    "in_progress": 12,
+                                                    "done": 20
+                                                },
+                                                "by_priority": {
+                                                    "low": 8,
+                                                    "medium": 14,
+                                                    "high": 20
+                                                },
+                                                "overdue": 3,
+                                                "due_today": 2,
+                                                "completed_this_week": 5
+                                            }
+                                        }
+                                    ],
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "total": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "by_status": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "by_priority": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "overdue": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "due_today": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                },
+                                                "completed_this_week": {
+                                                    "type": "integer",
+                                                    "minimum": 0
+                                                }
+                                            },
+                                            "required": [
+                                                "total",
+                                                "by_status",
+                                                "by_priority",
+                                                "overdue",
+                                                "due_today",
+                                                "completed_this_week"
+                                            ]
+                                        }
+                                    },
+                                    "required": [
+                                        "data"
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "$ref": "#/components/responses/AuthenticationException"
                     }
                 }
             }
@@ -1018,6 +1118,16 @@
                             ],
                             "minimum": 1,
                             "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "schema": {
+                            "type": [
+                                "string",
+                                "null"
+                            ]
                         }
                     }
                 ],
