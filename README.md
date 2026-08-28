@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/Sanctum-Auth-000000?style=for-the-badge" alt="Sanctum">
   <img src="https://img.shields.io/badge/API-v1-0ea5e9?style=for-the-badge" alt="API v1">
   <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT">
+  <img src="https://img.shields.io/github/actions/workflow/status/MahdiiMax/taskify/ci.yml?branch=main&style=for-the-badge" alt="CI">
 </p>
 
 
