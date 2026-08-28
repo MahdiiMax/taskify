@@ -72,4 +72,4 @@ jobs:
       - run: composer install --no-progress --prefer-dist
       - run: cp .env.example .env
       - run: php artisan key:generate
-      - run: php artisan test --configuration=${{ matrix.config }}
+      - run: vendor/bin/pest --configuration=${{ matrix.config }}
