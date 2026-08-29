@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Enums\TaskPriority;
+use App\Enums\TaskStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Task\IndexTaskRequest;
 use App\Http\Requests\Api\V1\Task\StoreTaskRequest;
@@ -14,6 +16,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response as HttpResponse;
 
 #[Group('Tasks')]
 class TaskController extends Controller
@@ -31,21 +34,9 @@ class TaskController extends Controller
     public function index(IndexTaskRequest $request): AnonymousResourceCollection
     {
         $tasks = $request->user()->tasks()
-            ->when($request->filled('search'), function ($query) use ($request) {
-                $search = '%'.strtolower($request->input('search')).'%';
-                $query->where(function ($query) use ($search) {
-                    $query->whereRaw('LOWER(title) LIKE ?', [$search])
-                        ->orWhereRaw('LOWER(description) LIKE ?', [$search]);
-                });
-            })
-            ->when($request->filled('status'), function ($query) use ($request) {
-                $query->where('status', $request->input('status'));
-            })
-            ->when($request->filled('priority'), function ($query) use ($request) {
-                $query->where('priority', $request->input('priority'));
-            })->when($request->filled('project_id'), function ($query) use ($request) {
-                $query->where('project_id', $request->input('project_id'));
-            })->latest()->paginate(10);
+            ->filter($request->validated())
+            ->sort($request->input('sort'))
+            ->paginate((int) $request->validated('per_page', 10));
 
         return TaskResource::collection($tasks);
     }
@@ -76,6 +67,7 @@ class TaskController extends Controller
     public function show(Task $task): TaskResource
     {
         $this->authorize('view', $task);
+        $task->loadMissing('user');
 
         return new TaskResource($task);
     }
@@ -91,6 +83,7 @@ class TaskController extends Controller
     {
         $this->authorize('update', $task);
         $task->update($request->validated());
+        $task->loadMissing('user');
 
         return response()->json([
             'message' => 'Task updated successfully',
@@ -101,17 +94,13 @@ class TaskController extends Controller
     /**
      * Remove the specified task from storage.
      */
-    #[Response(status: 204, description: 'Task deleted successfully', examples: [[
-        'message' => 'Task deleted successfully',
-    ]])]
-    public function destroy(Task $task): JsonResponse
+    #[Response(status: 204, description: 'Task deleted successfully')]
+    public function destroy(Task $task): HttpResponse
     {
         $this->authorize('delete', $task);
         $task->delete();
 
-        return response()->json([
-            'message' => 'Task deleted successfully',
-        ], 204);
+        return response()->noContent();
     }
 
     /**
@@ -122,9 +111,12 @@ class TaskController extends Controller
         'links' => ['first' => null, 'last' => null, 'prev' => null, 'next' => null],
         'meta' => ['current_page' => 1, 'from' => 1, 'last_page' => 1, 'path' => 'http://localhost:8000/api/v1/tasks/trashed', 'per_page' => 10, 'to' => 1, 'total' => 1],
     ]])]
-    public function trashed(Request $request): AnonymousResourceCollection
+    public function trashed(IndexTaskRequest $request): AnonymousResourceCollection
     {
-        $trashedTasks = $request->user()->tasks()->onlyTrashed()->latest()->paginate(10);
+        $trashedTasks = $request->user()->tasks()
+            ->onlyTrashed()
+            ->latest()
+            ->paginate((int) $request->validated('per_page', 10));
 
         return TaskResource::collection($trashedTasks);
     }
@@ -141,5 +133,55 @@ class TaskController extends Controller
         $task->restore();
 
         return new TaskResource($task);
+    }
+
+    /**
+     * Aggregate statistics for the authenticated user's tasks.
+     */
+    #[Response(status: 200, description: 'Task statistics', examples: [[
+        'data' => [
+            'total' => 42,
+            'by_status' => ['pending' => 10, 'in_progress' => 12, 'done' => 20],
+            'by_priority' => ['low' => 8, 'medium' => 14, 'high' => 20],
+            'overdue' => 3,
+            'due_today' => 2,
+            'completed_this_week' => 5,
+        ],
+    ]])]
+    public function stats(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $byStatus = $user->tasks()
+            ->select('status')
+            ->selectRaw('COUNT(*) AS aggregate')
+            ->groupBy('status')
+            ->pluck('aggregate', 'status');
+        $byPriority = $user->tasks()
+            ->select('priority')
+            ->selectRaw('COUNT(*) AS aggregate')
+            ->groupBy('priority')
+            ->pluck('aggregate', 'priority');
+
+        return response()->json([
+            'data' => [
+                'total' => $user->tasks()->count(),
+                'by_status' => collect(TaskStatus::cases())
+                    ->mapWithKeys(fn (TaskStatus $status) => [$status->value => (int) ($byStatus[$status->value] ?? 0)]),
+                'by_priority' => collect(TaskPriority::cases())
+                    ->mapWithKeys(fn (TaskPriority $priority) => [$priority->value => (int) ($byPriority[$priority->value] ?? 0)]),
+                'overdue' => $user->tasks()
+                    ->whereNotNull('due_date')
+                    ->where('due_date', '<', now())
+                    ->where('status', '!=', TaskStatus::DONE->value)
+                    ->count(),
+                'due_today' => $user->tasks()
+                    ->whereBetween('due_date', [now()->startOfDay(), now()->endOfDay()])
+                    ->count(),
+                'completed_this_week' => $user->tasks()
+                    ->where('status', TaskStatus::DONE->value)
+                    ->where('updated_at', '>=', now()->startOfWeek())
+                    ->count(),
+            ],
+        ]);
     }
 }

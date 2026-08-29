@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/Sanctum-Auth-000000?style=for-the-badge" alt="Sanctum">
   <img src="https://img.shields.io/badge/API-v1-0ea5e9?style=for-the-badge" alt="API v1">
   <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT">
+  <img src="https://img.shields.io/github/actions/workflow/status/MahdiiMax/taskify/ci.yml?branch=main&style=for-the-badge" alt="CI">
 </p>
 
 
@@ -21,10 +22,12 @@
 
 - 🔐 **Sanctum token auth** — 24-hour token expiry, revocable via logout
 - 📝 **Full CRUD** with soft delete & restore
-- 🔍 **Smart filtering** — exact `status`/`priority` filters + case-insensitive search
+- 🔍 **Smart filtering** — exact `status`/`priority`/`project_id` filters + case-insensitive search, plus `?sort=` ordering and `?per_page=` pagination
+- 📊 **Statistics** — `GET /tasks/stats` aggregates by status/priority, overdue, due-today, and completed-this-week
 - 👤 **Per-user isolation** — tasks and projects are private to their owner
 - 📁 **Projects** — organize tasks into color-coded projects with full CRUD, soft delete & restore
 - 🚦 **Rate limiting** — auth (5/min) & API (60/min)
+- ✅ **CI pipeline** — Pint style checks + Pest test suite across SQLite & PostgreSQL
 - 📚 **Interactive docs** via Scramble
 - 🗃️ **PostgreSQL** + Docker setup included
 
@@ -105,10 +108,10 @@ composer test    # or: php artisan test
 
 The suite runs on in-memory SQLite — no DB server needed. ⚠️ *SQLite is more lenient than PostgreSQL; run the suite against real Postgres before release to catch driver-specific issues.*
 
-If you want to run tests in your own PostgreSQL server:
+Run the suite against a real PostgreSQL server (adjust the credentials in `phpunit.pgsql.xml` to match your database):
 
 ```bash
-php artisan test --env=pgsql
+vendor/bin/pest --configuration=phpunit.pgsql.xml
 ```
 
 
@@ -130,6 +133,7 @@ php artisan test --env=pgsql
 
     tests/
     ├── Feature/Api/V1/                # AuthTest, TaskTest, ProjectTest
+    └── phpunit.pgsql.xml              # PostgreSQL test configuration (CI)
 
 
 ## 📜 API Reference
@@ -186,6 +190,7 @@ Tokens are issued by `login`, live **24 hours**, and are revoked by `logout`.
 | PUT/PATCH | `/tasks/{task}` | Update a task |
 | DELETE | `/tasks/{task}` | Soft delete a task |
 | GET | `/tasks/trashed` | List soft-deleted tasks |
+| GET | `/tasks/stats` | Aggregate statistics for your tasks |
 | POST | `/tasks/{task}/restore` | Restore a soft-deleted task |
 
 #### Task Fields
@@ -207,6 +212,8 @@ Tokens are issued by `login`, live **24 hours**, and are revoked by `logout`.
 | `priority` | `?priority=high` | exact match |
 | `search` | `?search=buy milk` | case-insensitive partial match on title/description |
 | `project_id` | `?project_id=3` | exact match (your projects only) |
+| `per_page` | `?per_page=25` | page size 1–100, default 10 |
+| `sort` | `?sort=-due_date,title` | whitelist: title, status, priority, due_date, created_at · `-` prefix = descending |
 
 Invalid `status`/`priority` values → `422`.
 
@@ -236,6 +243,7 @@ Invalid `status`/`priority` values → `422`.
 | --- | --- |
 | `200` | Success |
 | `201` | Created |
+| `204` | Deleted (empty response body) |
 | `400` | Already authenticated (on login/register) |
 | `401` | Unauthenticated / expired or revoked token |
 | `403` | Forbidden (another user's resource) |

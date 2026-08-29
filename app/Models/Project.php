@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProjectColor;
 use App\Http\Resources\Api\V1\ProjectResource;
 use Illuminate\Database\Eloquent\Attributes\UseResource;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,6 +22,18 @@ class Project extends Model
         'color',
         'user_id',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, class-string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'color' => ProjectColor::class,
+        ];
+    }
 
     public function user(): BelongsTo
     {
